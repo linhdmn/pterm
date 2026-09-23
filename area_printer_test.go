@@ -1,6 +1,7 @@
 package pterm_test
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 
@@ -88,6 +89,10 @@ func TestAreaPrinter_MultipleUpdates(t *testing.T) {
 }
 
 func TestAreaPrinter_UpdateWrapsLongLines(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("cursor's Windows backend moves and clears using the real console, not the test writer")
+	}
+
 	pterm.SetForcedTerminalSize(10, 60)
 	t.Cleanup(func() { pterm.SetForcedTerminalSize(terminalWidth, terminalHeight) })
 
