@@ -102,6 +102,8 @@ func (p *AreaPrinter) Update(text ...any) {
 		}
 	}
 
+	str = strings.Join(internal.WrapText(str, GetTerminalWidth()), "\n")
+
 	p.area.Update(str)
 }
 

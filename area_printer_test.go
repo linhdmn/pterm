@@ -87,6 +87,20 @@ func TestAreaPrinter_MultipleUpdates(t *testing.T) {
 	}
 }
 
+func TestAreaPrinter_UpdateWrapsLongLines(t *testing.T) {
+	pterm.SetForcedTerminalSize(10, 60)
+	t.Cleanup(func() { pterm.SetForcedTerminalSize(terminalWidth, terminalHeight) })
+
+	area, buf := startTestArea(t, &pterm.AreaPrinter{}, "first ten c")
+
+	area.Update("first ten characters")
+
+	frame := lastAreaFrame(buf.String())
+	assert.Equal(t, "first ten\ncharacters", frame,
+		"lines wider than the terminal must use explicit newlines so every wrapped row is cleared")
+	assert.Equal(t, "first ten characters", area.GetContent())
+}
+
 func TestAreaPrinter_MultilineUpdateClearsAllLines(t *testing.T) {
 	area, buf := startTestArea(t, &pterm.AreaPrinter{}, "line 1\nline 2\nline 3")
 
