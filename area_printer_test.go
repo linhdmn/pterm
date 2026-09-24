@@ -60,6 +60,7 @@ func TestAreaPrinter_StartRendersInitialContent(t *testing.T) {
 
 	assert.Same(t, &printer, area, "Start must return the started instance")
 	assert.Equal(t, "hello area", area.GetContent())
+
 	if runtime.GOOS != "windows" {
 		assert.Equal(t, "hello area", lastAreaFrame(buf.String()))
 	}
@@ -92,6 +93,7 @@ func TestAreaPrinter_MultipleUpdates(t *testing.T) {
 		area.Update(content)
 
 		assert.Equal(t, content, area.GetContent())
+
 		if runtime.GOOS != "windows" {
 			assert.Equal(t, content, lastAreaFrame(buf.String()))
 		}

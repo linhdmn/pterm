@@ -27,6 +27,7 @@ func waitForFrameLines(t *testing.T, buf *fdBuffer, want []string) {
 	if runtime.GOOS == "windows" {
 		t.Skip("cursor's Windows backend uses real console APIs instead of ANSI sequences")
 	}
+
 	waitFor(t, func() bool {
 		lines := lastAreaFrameLines(buf.String())
 		if len(lines) != len(want) {
