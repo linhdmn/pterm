@@ -2,6 +2,7 @@ package pterm_test
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -23,6 +24,9 @@ func lastAreaFrameLines(s string) []string {
 func waitForFrameLines(t *testing.T, buf *fdBuffer, want []string) {
 	t.Helper()
 
+	if runtime.GOOS == "windows" {
+		t.Skip("cursor's Windows backend uses real console APIs instead of ANSI sequences")
+	}
 	waitFor(t, func() bool {
 		lines := lastAreaFrameLines(buf.String())
 		if len(lines) != len(want) {

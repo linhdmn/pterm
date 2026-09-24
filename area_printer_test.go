@@ -60,13 +60,21 @@ func TestAreaPrinter_StartRendersInitialContent(t *testing.T) {
 
 	assert.Same(t, &printer, area, "Start must return the started instance")
 	assert.Equal(t, "hello area", area.GetContent())
-	assert.Equal(t, "hello area", lastAreaFrame(buf.String()))
+	if runtime.GOOS != "windows" {
+		assert.Equal(t, "hello area", lastAreaFrame(buf.String()))
+	}
 }
 
 func TestAreaPrinter_UpdateReplacesContentInPlace(t *testing.T) {
 	area, buf := startTestArea(t, &pterm.AreaPrinter{}, "first content")
 
 	area.Update("second content")
+
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, "second content", area.GetContent())
+
+		return
+	}
 
 	out := buf.String()
 	firstEnd := strings.Index(out, "first content") + len("first content")
@@ -84,7 +92,9 @@ func TestAreaPrinter_MultipleUpdates(t *testing.T) {
 		area.Update(content)
 
 		assert.Equal(t, content, area.GetContent())
-		assert.Equal(t, content, lastAreaFrame(buf.String()))
+		if runtime.GOOS != "windows" {
+			assert.Equal(t, content, lastAreaFrame(buf.String()))
+		}
 	}
 }
 
@@ -111,6 +121,12 @@ func TestAreaPrinter_MultilineUpdateClearsAllLines(t *testing.T) {
 
 	area.Update("replacement")
 
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, "replacement", area.GetContent())
+
+		return
+	}
+
 	out := buf.String()
 	assert.Contains(t, out, "\x1b[1A"+clearLineSequence, "multi-line content must be cleared upwards line by line")
 	assert.Equal(t, "replacement", lastAreaFrame(out))
@@ -120,6 +136,10 @@ func TestAreaPrinter_CenterCentersContent(t *testing.T) {
 	area, buf := startTestArea(t, pterm.DefaultArea.WithCenter())
 
 	area.Update("ab")
+
+	if runtime.GOOS == "windows" {
+		return
+	}
 
 	line := strings.TrimRight(lastAreaFrame(buf.String()), "\n")
 	assert.Equal(t, strings.Repeat(" ", 39)+"ab", line,
@@ -131,6 +151,10 @@ func TestAreaPrinter_FullscreenPadsToTerminalHeight(t *testing.T) {
 
 	area.Update("content line")
 
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	frame := lastAreaFrame(buf.String())
 	assert.Equal(t, "content line", strings.TrimSpace(frame))
 	assert.Equal(t, 58, strings.Count(frame, "\n"),
@@ -141,6 +165,10 @@ func TestAreaPrinter_FullscreenCenterPadsOnBothSides(t *testing.T) {
 	area, buf := startTestArea(t, pterm.DefaultArea.WithFullscreen().WithCenter())
 
 	area.Update("x")
+
+	if runtime.GOOS == "windows" {
+		return
+	}
 
 	frame := lastAreaFrame(buf.String())
 	assert.Equal(t, "x", strings.TrimSpace(frame))
@@ -157,6 +185,10 @@ func TestAreaPrinter_ClearEmptiesArea(t *testing.T) {
 	buf.Reset()
 	area.Clear()
 
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	out := buf.String()
 	assert.Contains(t, out, clearLineSequence, "clearing must erase the painted line")
 	assert.Empty(t, strings.TrimSpace(stripTerminalEscapes(out)), "clearing must not paint any visible content")
@@ -167,6 +199,10 @@ func TestAreaPrinter_RemoveWhenDoneClearsOnStop(t *testing.T) {
 
 	buf.Reset()
 	require.NoError(t, area.Stop())
+
+	if runtime.GOOS == "windows" {
+		return
+	}
 
 	out := buf.String()
 	assert.Contains(t, out, clearLineSequence, "stopping must clear the area")
@@ -183,6 +219,5 @@ func TestAreaPrinter_StopKeepsContentWithoutRemoveWhenDone(t *testing.T) {
 
 	buf.Reset()
 	require.NoError(t, area.Stop())
-
 	assert.Empty(t, buf.String(), "without RemoveWhenDone, Stop must not touch the rendered content")
 }
